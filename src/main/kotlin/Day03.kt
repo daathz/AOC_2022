@@ -1,5 +1,8 @@
 data class Backpack(val firstRucksack : String, val secondRucksack: String)
-fun main() {
+
+data class Group(val firstBackpack: String, val secondBackpack: String, val thirdBackpacks: String)
+
+fun part1() {
     var score = 0
     val inputs = readInput("day03")
     val backpacks = ArrayList<Backpack>()
@@ -22,7 +25,7 @@ fun main() {
                     } else {
                         value = value - 65 + 27
                     }
-                    println(value)
+                    // println(value)
                     score += value
                     break
                 }
@@ -31,4 +34,36 @@ fun main() {
     }
 
     println(score)
+}
+
+fun part2() {
+    var score = 0
+    val inputs = readInput("day03")
+    val groups = ArrayList<Group>()
+
+    for (i in 0..inputs.size - 3 step 3) {
+        groups.add(Group(inputs[i], inputs[i + 1], inputs[i + 2]))
+    }
+
+    for (group in groups) {
+        val firstBackpack = group.firstBackpack.toCharArray().toSet()
+        val secondBackpack = group.secondBackpack.toCharArray().toSet()
+        val thirdBackpacks = group.thirdBackpacks.toCharArray().toSet()
+
+        val intersect = firstBackpack.intersect(secondBackpack).intersect(thirdBackpacks)
+        val c = intersect.stream().findAny().get()
+        val value : Int = if (c.isLowerCase()) {
+            c.code - 96
+        } else {
+            c.code - 65 + 27
+        }
+
+        score += value
+    }
+
+    println(score)
+}
+
+fun main() {
+    part2()
 }
