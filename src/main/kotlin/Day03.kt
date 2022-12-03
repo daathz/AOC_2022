@@ -13,24 +13,13 @@ fun part1() {
     }
 
     for (backpack in backpacks) {
-        val firstRucksack = backpack.firstRucksack.toCharArray().toSet()
-        val secondRucksack = backpack.secondRucksack.toCharArray().toSet()
+        val firstRucksack = backpack.firstRucksack.toCharSet()
+        val secondRucksack = backpack.secondRucksack.toCharSet()
 
-        for (c1 in firstRucksack) {
-            for (c2 in secondRucksack) {
-                if (c1 == c2) {
-                    var value = c1.code
-                    if (c1.isLowerCase()) {
-                        value -= 96
-                    } else {
-                        value = value - 65 + 27
-                    }
-                    // println(value)
-                    score += value
-                    break
-                }
-            }
-        }
+
+        val intersect = firstRucksack.intersect(secondRucksack)
+
+        score += intersect.first().getValue()
     }
 
     println(score)
@@ -46,24 +35,30 @@ fun part2() {
     }
 
     for (group in groups) {
-        val firstBackpack = group.firstBackpack.toCharArray().toSet()
-        val secondBackpack = group.secondBackpack.toCharArray().toSet()
-        val thirdBackpacks = group.thirdBackpacks.toCharArray().toSet()
+        val firstBackpack = group.firstBackpack.toCharSet()
+        val secondBackpack = group.secondBackpack.toCharSet()
+        val thirdBackpacks = group.thirdBackpacks.toCharSet()
 
         val intersect = firstBackpack.intersect(secondBackpack).intersect(thirdBackpacks)
-        val c = intersect.stream().findAny().get()
-        val value : Int = if (c.isLowerCase()) {
-            c.code - 96
-        } else {
-            c.code - 65 + 27
-        }
 
-        score += value
+        score += intersect.first().getValue()
     }
 
     println(score)
 }
 
+fun String.toCharSet() = toCharArray().toSet()
+
+fun Char.getValue(): Int =
+    let {
+        if (it.isLowerCase()) {
+            return it.code - 96
+        } else {
+            return it.code - 65 + 27
+        }
+    }
+
 fun main() {
+    part1()
     part2()
 }
