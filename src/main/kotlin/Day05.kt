@@ -1,6 +1,3 @@
-import java.util.*
-import kotlin.collections.ArrayList
-
 object Day05 : DayXX() {
 
     private data class Move(val size: Int, val from: Int, val to: Int)
@@ -18,7 +15,9 @@ object Day05 : DayXX() {
     }
 
     private fun createStacksAndMoves(inputs: List<String>): Pair<ArrayList<ArrayDeque<Char>>, List<Move>> {
-        val crates = inputs.takeWhile { it != "" }.reversed()
+        val crates = inputs.takeWhile { it != "" }.reversed().drop(1)
+            .map { replaceEverySecondCharacter(it, true) } // removes brackets
+            .map { replaceEverySecondCharacter(it, false) } // removes whitespaces
         val rearrangements = inputs.takeLastWhile { it != "" }
 
         val stacks = ArrayList<ArrayDeque<Char>>()
@@ -55,8 +54,20 @@ object Day05 : DayXX() {
             )
         }
 
-        stacks.forEach { print(it.last) }
+        stacks.forEach { print(it.last()) }
         println()
+    }
+
+    private fun replaceEverySecondCharacter(input: String, removeEvens: Boolean): String {
+        val sb = StringBuilder()
+        for ((index, char) in input.withIndex()) {
+            if (removeEvens && index % 2 != 0) {
+                sb.append(char)
+            } else if (!removeEvens && index % 2 == 0) {
+                sb.append(char)
+            }
+        }
+        return sb.toString()
     }
 }
 
