@@ -34,8 +34,8 @@ object Day05 : DayXX() {
         }
 
         val moves = rearrangements.map {
-            val tokens = it.split(" ")
-            Move(Integer.parseInt(tokens[1]), Integer.parseInt(tokens[3]), Integer.parseInt(tokens[5]))
+            val tokens = it.split(" ").map(Integer::parseInt)
+            Move(tokens[1], tokens[3], tokens[5])
         }
 
         return Pair(stacks, moves)
