@@ -12,7 +12,7 @@ object Day03 : DayXX() {
 
     override fun part2() {
         val score = readInput("day03")
-            .windowed(size = 3, step = 3)
+            .chunked(3)
             .map { it.map { s -> s.toCharSet() } }
             .map { it[0].intersect(it[1]).intersect(it[2]).first() }
             .sumOf { it.getValue() }
