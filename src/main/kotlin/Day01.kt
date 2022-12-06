@@ -13,7 +13,7 @@ object Day01 : DayXX() {
         val sums = ArrayList<Int>()
 
         var temp = 0
-        input.map(Integer::parseInt).forEach {
+        input.map(String::toInt).forEach {
             if (it > 0) {
                 temp += it
             } else {

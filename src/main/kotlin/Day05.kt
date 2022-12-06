@@ -34,7 +34,7 @@ object Day05 : DayXX() {
         }
 
         val moves = rearrangements.map {
-            val tokens = it.split(" ").map(Integer::parseInt)
+            val tokens = it.split(" ").map(String::toInt)
             Move(tokens[1], tokens[3], tokens[5])
         }
 

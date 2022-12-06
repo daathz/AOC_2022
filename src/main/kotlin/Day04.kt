@@ -27,8 +27,8 @@ object Day04 : DayXX() {
                 val firstRangeArray = it.first.split("-")
                 val secondRangeArray = it.second.split("-")
 
-                val firstRange = Integer.parseInt(firstRangeArray[0])..Integer.parseInt(firstRangeArray[1])
-                val secondRange = Integer.parseInt(secondRangeArray[0])..Integer.parseInt(secondRangeArray[1])
+                val firstRange = firstRangeArray[0].toInt()..firstRangeArray[1].toInt()
+                val secondRange = secondRangeArray[0].toInt()..secondRangeArray[1].toInt()
 
                 Pair(firstRange, secondRange)
             }
