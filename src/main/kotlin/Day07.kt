@@ -1,4 +1,4 @@
-import java.util.*
+import java.util.Stack
 
 object Day07 : DayXX() {
     override fun part1() {
@@ -27,26 +27,33 @@ object Day07 : DayXX() {
         val rootNode = Node("/", 0, mutableListOf())
         var currentNode = rootNode
         val previousNodes = Stack<Node>()
+
         previousNodes.add(rootNode)
-        readInput("day07").map {
-            it.split(" ")
-        }.forEach {
-            if (it[0] == "$" && it[1] == "cd") {
-                if (it[2] == "/") {
-                    currentNode = rootNode
-                    previousNodes.empty()
-                    previousNodes.add(rootNode)
-                } else if (it[2] == "..") {
-                    currentNode = previousNodes.pop()
-                } else {
-                    previousNodes.add(currentNode)
-                    currentNode = currentNode.children?.find { node -> node.name == it[2] }!!
+
+        input.map { it.split(" ") }.forEach {
+            when {
+                it[0] == "$" && it[1] == "cd" -> {
+                    when {
+                        it[2] == "/" -> {
+                            currentNode = rootNode
+                            previousNodes.empty()
+                            previousNodes.add(rootNode)
+                        }
+                        it[2] == ".." -> {
+                            currentNode = previousNodes.pop()
+                        }
+                        else -> {
+                            previousNodes.add(currentNode)
+                            currentNode = currentNode.children?.find { node -> node.name == it[2] }!!
+                        }
+                    }
                 }
-            } else if (it[0] == "dir") {
-                currentNode.addChild(Node(it[1], 0, mutableListOf()))
-            } else if (it[0] == "$" && it[1] == "ls") {
-            } else {
-                currentNode.addChild(Node(it[1], it[0].toInt(), null))
+                it[0] == "dir" -> {
+                    currentNode.addChild(Node(it[1], 0, mutableListOf()))
+                }
+                it[0].all { c -> c.isDigit() } -> {
+                    currentNode.addChild(Node(it[1], it[0].toInt(), null))
+                }
             }
         }
 
