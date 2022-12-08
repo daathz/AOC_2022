@@ -9,27 +9,23 @@ object Day08 : DayXX() {
             forest.add(arr)
         }
 
-        checkNTrees(forest, 32, 31, "" , forest.get(32).get(31))
-
-        var visibleCount = 0
+        var score = 0
         for ((ri, row) in forest.withIndex()) {
-            for ((ci, column) in row.withIndex()) {
-                if (checkNTrees(forest, ri, ci, "" , forest.get(ri).get(ci))) {
-                    print(forest.get(ri).get(ci))
-                    visibleCount++
-                } else {
-                    print(" ")
-                }
+            for ((ci, _) in row.withIndex()) {
+                val current = forest[ri][ci]
+                val topScore = checkTopScore(forest, ri, ci, current)
+                val bottomScore = checkBottomScore(forest, ri, ci, current)
+                val leftScore = checkLeftScore(forest, ri, ci, current)
+                val rightScore = checkRightScore(forest, ri, ci, current)
+                val currentScore = topScore * bottomScore * leftScore * rightScore
+                score = maxOf(score, currentScore)
             }
             println()
-
         }
-
-        println(visibleCount)
+        println(score)
     }
 
-    private fun checkNTrees(list: MutableList<MutableList<Int>>, i: Int, j: Int, direction: String, original: Int):
-            Boolean {
+    private fun checkNTrees(list: MutableList<MutableList<Int>>, i: Int, j: Int, direction: String, original: Int): Boolean {
         var result = false
         val current = list.get(i).get(j)
 
@@ -57,6 +53,78 @@ object Day08 : DayXX() {
         }
 
         return result
+    }
+
+    private fun checkTopScore(list: MutableList<MutableList<Int>>, i: Int, j: Int, original: Int): Int {
+        val previousHeights = mutableListOf<Int>()
+
+        if (i == 0) return 0
+
+        for (idx in i - 1 downTo 0) {
+            val current = list[idx][j]
+
+            previousHeights.add(current)
+
+            if (current >= original) {
+                break
+            }
+        }
+
+        return previousHeights.size
+    }
+
+    private fun checkBottomScore(list: MutableList<MutableList<Int>>, i: Int, j: Int, original: Int): Int {
+        val previousHeights = mutableListOf<Int>()
+
+        if (i + 1 == list.size) return 0
+
+        for (idx in i + 1 until list.size) {
+            val current = list[idx][j]
+
+            previousHeights.add(current)
+
+            if (current >= original) {
+                break
+            }
+        }
+
+        return previousHeights.size
+    }
+
+    private fun checkLeftScore(list: MutableList<MutableList<Int>>, i: Int, j: Int, original: Int): Int {
+        val previousHeights = mutableListOf<Int>()
+
+        if (j == 0) return 0
+
+        for (idx in j - 1 downTo 0) {
+            val current = list[i][idx]
+
+            previousHeights.add(current)
+
+            if (current >= original) {
+                break
+            }
+        }
+
+        return previousHeights.size
+    }
+
+    private fun checkRightScore(list: MutableList<MutableList<Int>>, i: Int, j: Int, original: Int): Int {
+        val previousHeights = mutableListOf<Int>()
+
+        if (j + 1 == list[i].size) return 0
+
+        for (idx in j + 1 until list[i].size) {
+            val current = list[i][idx]
+
+            previousHeights.add(current)
+
+            if (current >= original) {
+                break
+            }
+        }
+
+        return previousHeights.size
     }
 
     override fun part2() {
