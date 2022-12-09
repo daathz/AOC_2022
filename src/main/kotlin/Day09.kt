@@ -1,157 +1,150 @@
-import kotlin.math.abs
-
 object Day09 : DayXX() {
 
-    override fun part2() {
-    }
-    override fun part1() {
-        val moves = readInput("day09").map {
-            it.split(" ")
-        }.map {
-            Pair(it[0], it[1].toInt())
-        }
+    private data class Move(val direction: Char, val amount: Int)
 
-        val map = mutableListOf<MutableList<Boolean>>()
-        for (i in 0 until 9000) {
-        //for (i in 0 until 50) {
-            map.add(mutableListOf())
-            for (j in 0 until 9000) {
-                //for (j in 0 until 50) {
-                map[i].add(false)
+    private data class Knot(val row: Int, val column: Int)
+
+    override fun part1() {
+        val moves = getMoves(readInput("day09"))
+
+        val visitedCoordinates = HashSet<Knot>()
+
+        var headPos = Knot(0, 0)
+        var tailPos = Knot(0, 0)
+
+        for (move in moves) {
+            for (i in 0 until move.amount) {
+                headPos = moveHead(headPos, move.direction)
+
+                tailPos = moveTail(headPos, tailPos)
+
+                visitedCoordinates.add(tailPos)
             }
         }
 
-        val rope = mutableListOf(
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000),
-            Pair(2000, 2000)
-        )
+        println(visitedCoordinates.count())
+    }
 
-        /*val rope = mutableListOf(
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15),
-            Pair(15, 15)
-        )*/
+    override fun part2() {
+        val moves = getMoves(readInput("day09"))
 
-        var prevHead = Pair(2000, 2000)
+        val visitedCoordinates = HashSet<Knot>()
+
+        val rope = mutableListOf<Knot>()
+
+        (0 until 10).forEach { _ ->
+            rope.add(Knot(0, 0))
+        }
+
         for (move in moves) {
-            for (i in 0 until move.second) {
-                rope[0] = when (move.first) {
-                    "R" -> Pair(rope[0].first + 1, rope[0].second)
-                    "L" -> Pair(rope[0].first - 1, rope[0].second)
-                    "U" -> Pair(rope[0].first, rope[0].second + 1)
-                    "D" -> Pair(rope[0].first, rope[0].second - 1)
-                    else -> rope[0]
-                }
+            for (i in 0 until move.amount) {
+                rope[0] = moveHead(rope[0], move.direction)
 
                 for (j in 0 until 9) {
                     val headPos = rope[j]
                     var tailPos = rope[j + 1]
 
-                    val firstDistance = calcFirstDistance(headPos, tailPos)
-                    val secondDistance = calcSecondDistance(headPos, tailPos)
+                    tailPos = moveTail(headPos, tailPos)
 
-                    if (secondDistance == 0) {
-                        if (firstDistance == 2) {
-                            tailPos = Pair(tailPos.first + 1, tailPos.second)
-                        } else if (firstDistance == -2) {
-                            tailPos = Pair(tailPos.first - 1, tailPos.second)
-                        }
-                    } else if (firstDistance == 0) {
-                        if (secondDistance == 2) {
-                            tailPos = Pair(tailPos.first, tailPos.second + 1)
-                        } else if (secondDistance == -2) {
-                            tailPos = Pair(tailPos.first, tailPos.second - 1)
-                        }
-                    }
-
-                    else if (firstDistance == 1) {
-                        if (secondDistance == 2) {
-                            tailPos = Pair(tailPos.first + 1, tailPos.second + 1)
-                        } else if (secondDistance == -2) {
-                            tailPos = Pair(tailPos.first + 1, tailPos.second - 1)
-                        }
-                    }
-
-                    else if (firstDistance == -1) {
-                        if (secondDistance == 2) {
-                            tailPos = Pair(tailPos.first - 1, tailPos.second + 1)
-                        } else if (secondDistance == -2) {
-                            tailPos = Pair(tailPos.first - 1, tailPos.second - 1)
-                        }
-                    }
-
-                     else if (secondDistance == 1) {
-                        if (firstDistance == 2) {
-                            tailPos = Pair(tailPos.first + 1, tailPos.second + 1)
-                        } else if (firstDistance == -2) {
-                            tailPos = Pair(tailPos.first - 1, tailPos.second + 1)
-                        }
-                    }
-
-                    else if (secondDistance == -1) {
-                        if (firstDistance == 2) {
-                            tailPos = Pair(tailPos.first + 1, tailPos.second - 1)
-                        } else if (firstDistance == -2) {
-                            tailPos = Pair(tailPos.first - 1, tailPos.second - 1)
-                        }
-                    }
-
-                    else if (firstDistance == 2 && secondDistance == 2) {
-                        tailPos = Pair(tailPos.first + 1, tailPos.second + 1)
-                    }
-
-                    else if (firstDistance == -2 && secondDistance == -2) {
-                        tailPos = Pair(tailPos.first - 1, tailPos.second - 1)
-                    }
-
-                    else if (firstDistance == 2 && secondDistance == -2) {
-                        tailPos = Pair(tailPos.first + 1, tailPos.second - 1)
-                    }
-
-                    else if (firstDistance == -2 && secondDistance == 2) {
-                        tailPos = Pair(tailPos.first - 1, tailPos.second + 1)
-                    }
-
-                    prevHead = rope[j + 1]
                     rope[j + 1] = tailPos
                 }
 
-                map[rope.last().first][rope.last().second] = true
+                visitedCoordinates.add(rope.last())
             }
         }
 
-        /*for (i in 0 until map.size) {
-              for (j in 0 until map[i].size) {
-                  if (map[i][j]) {
-                      print("#")
-                  } else print(" ")
-              }
-              println()
-          }*/
-
-        val count = map.flatten().count { it }
-        println(count)
+        println(visitedCoordinates.count())
     }
 
-    private fun calcFirstDistance(head: Pair<Int, Int>, tail: Pair<Int, Int>): Int = head.first - tail.first
 
-    private fun calcSecondDistance(head: Pair<Int, Int>, tail: Pair<Int, Int>): Int = head.second - tail.second
+    private fun calcRowDistance(head: Knot, tail: Knot): Int = head.row - tail.row
 
+    private fun calcColumnDistance(head: Knot, tail: Knot): Int = head.column - tail.column
+
+    private fun getMoves(input: List<String>) = input
+        .map { it.split(" ") }
+        .map { Move(it[0].single(), it[1].toInt()) }
+
+    private fun moveHead(headPos: Knot, move: Char): Knot {
+        return when (move) {
+            'R' -> Knot(headPos.row + 1, headPos.column)
+            'L' -> Knot(headPos.row - 1, headPos.column)
+            'U' -> Knot(headPos.row, headPos.column + 1)
+            'D' -> Knot(headPos.row, headPos.column - 1)
+            else -> headPos
+        }
+    }
+
+    private fun moveTail(headPos: Knot, tailPos: Knot): Knot {
+        val rowDistance = calcRowDistance(headPos, tailPos)
+        val columnDistance = calcColumnDistance(headPos, tailPos)
+
+        var tail = tailPos
+
+        if (columnDistance == 0) {
+            if (rowDistance == 2) {
+                tail = Knot(tail.row + 1, tail.column)
+            } else if (rowDistance == -2) {
+                tail = Knot(tail.row - 1, tail.column)
+            }
+        } else if (rowDistance == 0) {
+            if (columnDistance == 2) {
+                tail = Knot(tail.row, tail.column + 1)
+            } else if (columnDistance == -2) {
+                tail = Knot(tail.row, tail.column - 1)
+            }
+        }
+
+        else if (rowDistance == 1) {
+            if (columnDistance == 2) {
+                tail = Knot(tail.row + 1, tail.column + 1)
+            } else if (columnDistance == -2) {
+                tail = Knot(tail.row + 1, tail.column - 1)
+            }
+        }
+
+        else if (rowDistance == -1) {
+            if (columnDistance == 2) {
+                tail = Knot(tail.row - 1, tail.column + 1)
+            } else if (columnDistance == -2) {
+                tail = Knot(tail.row - 1, tail.column - 1)
+            }
+        }
+
+        else if (columnDistance == 1) {
+            if (rowDistance == 2) {
+                tail = Knot(tail.row + 1, tail.column + 1)
+            } else if (rowDistance == -2) {
+                tail = Knot(tail.row - 1, tail.column + 1)
+            }
+        }
+
+        else if (columnDistance == -1) {
+            if (rowDistance == 2) {
+                tail = Knot(tail.row + 1, tail.column - 1)
+            } else if (rowDistance == -2) {
+                tail = Knot(tail.row - 1, tail.column - 1)
+            }
+        }
+
+        else if (rowDistance == 2 && columnDistance == 2) {
+            tail = Knot(tail.row + 1, tail.column + 1)
+        }
+
+        else if (rowDistance == -2 && columnDistance == -2) {
+            tail = Knot(tail.row - 1, tail.column - 1)
+        }
+
+        else if (rowDistance == 2 && columnDistance == -2) {
+            tail = Knot(tail.row + 1, tail.column - 1)
+        }
+
+        else if (rowDistance == -2 && columnDistance == 2) {
+            tail = Knot(tail.row - 1, tail.column + 1)
+        }
+
+        return tail
+    }
 }
 
 fun main() {
