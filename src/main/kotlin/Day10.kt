@@ -25,8 +25,8 @@ object Day10 : DayXX() {
         cycles.chunked(40) {
                 it.mapIndexed { idx, cycle ->
                     when (abs((idx - cycle))) {
-                        in 0..1 -> '█'
-                        else -> ' '
+                        in 0..1 -> FOREGROUND_CHAR
+                        else -> BACKGROUND_CHAR
                     }
                 }
                     .fold("") { row, c -> row + c }

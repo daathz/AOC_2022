@@ -2,6 +2,9 @@ import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 
+const val FOREGROUND_CHAR = '█'
+const val BACKGROUND_CHAR = '░'
+
 /**
  * Reads lines from the given input txt file.
  */
