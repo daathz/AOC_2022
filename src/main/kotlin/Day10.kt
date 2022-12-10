@@ -1,45 +1,67 @@
+import kotlin.math.abs
+
 object Day10 : DayXX() {
 
-    private data class Command(val name: String, val value: Int = 0)
+    private enum class CommandType { NOOP, ADDX }
 
-    private  data class Cycle(val start: Int, val end: Int = 0)
+    private data class Command(val type: CommandType, val value: Int = 0)
+
+    private data class Cycle(val start: Int, val end: Int = 0)
 
     override fun part1() {
-        val commands = readInput("day10").map { it.split(" ") }
-            .map {
-                if (it[0] == "noop") Command(it[0], 0)
-                else Command(it[0], it[1].toInt())
-            }
+        val cycles = createCycles(getCommands(readInput("day10")))
 
-        val xValues = mutableListOf<Cycle>()
-        var xValue = 1
-
-        for (command in commands) {
-            if (command.name == "noop") {
-                xValues.add(Cycle(xValue, xValue))
-            } else {
-                xValues.add(Cycle(xValue, xValue))
-                val oldValue = xValue
-                xValue += command.value
-                xValues.add(Cycle(oldValue, xValue))
-            }
-        }
-
-        val filteredValues = xValues.withIndex().filter {
-            val myIndex = it.index + 1
-            myIndex == 20 || myIndex == 60 || myIndex == 100 || myIndex == 140 || myIndex == 180 || myIndex == 220
-        }
-
-        filteredValues.forEach {
-            println(it.index.toString() + ": " + it.value)
-        }
-
-        val sum = filteredValues.sumOf { (it.index + 1) * it.value.start}
+        val sum = cycles.withIndex()
+            .filter {
+                val myIndex = it.index + 1
+                myIndex == 20 || (myIndex - 20) % 40 == 0
+            }.sumOf { (it.index + 1) * it.value.start }
 
         println(sum)
     }
 
     override fun part2() {
+        val cycles = createCycles(getCommands(readInput("day10")))
+
+        cycles.chunked(40) {
+                it.mapIndexed { idx, cycle ->
+                    when (abs((idx - cycle.start))) {
+                        in 0..1 -> '█'
+                        else -> ' '
+                    }
+                }
+                    .fold("") { row, c -> row + c }
+            }
+            .forEach(::println)
+    }
+
+    private fun getCommands(input: List<String>): List<Command> = input
+        .map { it.split(" ") }
+        .map {
+            when (it[0]) {
+                "noop" -> Command(CommandType.NOOP)
+                else -> Command(CommandType.ADDX, it[1].toInt())
+            }
+        }
+
+    private fun createCycles(commands: List<Command>): List<Cycle> {
+        val cycles = mutableListOf<Cycle>()
+        var xValue = 1
+
+        commands.forEach { command ->
+            when (command.type) {
+                CommandType.NOOP -> cycles.add(Cycle(xValue, xValue))
+                CommandType.ADDX -> {
+                    val oldValue = xValue
+                    xValue += command.value
+
+                    cycles.add(Cycle(oldValue, oldValue))
+                    cycles.add(Cycle(oldValue, xValue))
+                }
+            }
+        }
+
+        return cycles
     }
 }
 
