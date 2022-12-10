@@ -6,7 +6,6 @@ object Day10 : DayXX() {
 
     private data class Command(val type: CommandType, val value: Int = 0)
 
-    private data class Cycle(val start: Int, val end: Int = 0)
 
     override fun part1() {
         val cycles = createCycles(getCommands(readInput("day10")))
@@ -15,7 +14,7 @@ object Day10 : DayXX() {
             .filter {
                 val myIndex = it.index + 1
                 myIndex == 20 || (myIndex - 20) % 40 == 0
-            }.sumOf { (it.index + 1) * it.value.start }
+            }.sumOf { (it.index + 1) * it.value }
 
         println(sum)
     }
@@ -25,7 +24,7 @@ object Day10 : DayXX() {
 
         cycles.chunked(40) {
                 it.mapIndexed { idx, cycle ->
-                    when (abs((idx - cycle.start))) {
+                    when (abs((idx - cycle))) {
                         in 0..1 -> '█'
                         else -> ' '
                     }
@@ -44,19 +43,18 @@ object Day10 : DayXX() {
             }
         }
 
-    private fun createCycles(commands: List<Command>): List<Cycle> {
-        val cycles = mutableListOf<Cycle>()
+    private fun createCycles(commands: List<Command>): List<Int> {
+        val cycles = mutableListOf<Int>()
         var xValue = 1
 
         commands.forEach { command ->
             when (command.type) {
-                CommandType.NOOP -> cycles.add(Cycle(xValue, xValue))
+                CommandType.NOOP -> cycles.add(xValue)
                 CommandType.ADDX -> {
-                    val oldValue = xValue
-                    xValue += command.value
+                    cycles.add(xValue)
+                    cycles.add(xValue)
 
-                    cycles.add(Cycle(oldValue, oldValue))
-                    cycles.add(Cycle(oldValue, xValue))
+                    xValue += command.value
                 }
             }
         }
