@@ -1,29 +1,36 @@
-data class Step(val c: Char, var distance: Int = -1)
+typealias ElevationMap = List<List<Elevation>>
+
+data class Elevation(val c: Char, val value: Int, val rowIndex: Int, val columnIndex: Int, var distance: Int = -1)
 object Day12 : DayXX() {
     override fun part1() {
-        val distances = HashSet<Int>()
+        val map = getMap(readInput("day12"))
 
-        for (i in 0 until 41) {
-            for (j in 0 until 67) {
-                val map = readInput("day12").map {
-                    it.toCharArray().toList().map { c -> Step(c) }
-                }
-                if (map[i][j].c == 'a') {
-                    goToGoal(map, i, j)
-                    println(map[20][43])
-                    if (map[20][43].distance != -1) distances.add(map[20][43].distance)
-                }
-            }
-        }
+        map.flatten()
+            .first { step -> step.c == 'S' }
+            .let { step -> setDistanceFrom(map, step.rowIndex, step.columnIndex) }
 
-        println(distances.min())
+        println(map.getDistanceOfE())
     }
 
     override fun part2() {
+        val map = getMap(readInput("day12"))
+
+        val minDistanceToE = map.flatten()
+            .filter { step -> step.c == 'a' || step.c == 'S' }
+            .map { step ->
+                val newMap = getMap(readInput("day12"))
+                setDistanceFrom(newMap, step.rowIndex, step.columnIndex)
+
+                newMap.getDistanceOfE()
+            }
+            .filter { distance -> distance != -1 }
+            .min()
+
+        println(minDistanceToE)
     }
 
-    private fun goToGoal(map: List<List<Step>>, row: Int, col: Int, init: Int = 0) {
-        val currentVal = if (map[row][col].c == 'S') 'a'.code else map[row][col].c.code + 1
+    private fun setDistanceFrom(map: ElevationMap, row: Int, col: Int, init: Int = 0) {
+        val currentVal = map[row][col].value + 1
 
         var steps = init
 
@@ -34,34 +41,41 @@ object Day12 : DayXX() {
         steps++
 
         if (col + 1 != map[row].size) {
-            if (map[row][col + 1].c.code <= currentVal && shouldGo(map[row][col + 1], steps)) {
-                if ((map[row][col + 1].c == 'E' && 'z'.code <= currentVal) || map[row][col + 1].c != 'E')
-                    goToGoal(map, row, col + 1, steps)
+            if (canStep(map[row][col + 1], currentVal, steps)) {
+                setDistanceFrom(map, row, col + 1, steps)
             }
         }
         if (row + 1 != map.size) {
-            if (map[row + 1][col].c.code <= currentVal && shouldGo(map[row + 1][col], steps)) {
-                if ((map[row + 1][col].c == 'E'&& 'z'.code <= currentVal) || map[row + 1][col].c != 'E')
-                    goToGoal(map, row + 1, col, steps)
+            if (canStep(map[row + 1][col], currentVal, steps)) {
+                setDistanceFrom(map, row + 1, col, steps)
             }
         }
         if (col >= 1) {
-            if (map[row][col - 1].c.code <= currentVal && shouldGo(map[row][col - 1], steps)) {
-                if ((map[row][col - 1].c == 'E'&& 'z'.code <= currentVal) || map[row][col - 1].c != 'E')
-                    goToGoal(map, row, col - 1, steps)
+            if (canStep(map[row][col - 1], currentVal, steps)) {
+                setDistanceFrom(map, row, col - 1, steps)
             }
         }
         if (row >= 1) {
-            if (map[row - 1][col].c.code <= currentVal && shouldGo(map[row - 1][col], steps)) {
-                if ((map[row - 1][col].c == 'E'&& 'z'.code <= currentVal) || map[row - 1][col].c != 'E')
-                    goToGoal(map, row - 1, col, steps)
+            if (canStep(map[row - 1][col], currentVal, steps)) {
+                setDistanceFrom(map, row - 1, col, steps)
             }
         }
-
-        // println(map[row][col])
     }
 
-    private fun shouldGo(step: Step, steps: Int): Boolean = (step.distance > steps || step.distance == -1)
+    private fun canStep(elevation: Elevation, currentVal: Int, steps: Int): Boolean =
+        (elevation.value <= currentVal) && (elevation.distance > steps || elevation.distance == -1)
+
+    private fun getMap(input: List<String>): ElevationMap = input.mapIndexed { lineIndex, line ->
+        line.toCharArray().toList().mapIndexed { charIndex, char ->
+            when (char) {
+                'S' -> Elevation(char, 'a'.code, lineIndex, charIndex)
+                'E' -> Elevation(char, 'z'.code, lineIndex, charIndex)
+                else -> Elevation(char, char.code, lineIndex, charIndex)
+            }
+        }
+    }
+
+    private fun ElevationMap.getDistanceOfE() = flatten().first { step -> step.c == 'E' }.distance
 }
 
 fun main() {
