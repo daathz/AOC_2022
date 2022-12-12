@@ -1,13 +1,22 @@
 data class Step(val c: Char, var distance: Int = -1)
 object Day12 : DayXX() {
     override fun part1() {
-        val map = readInput("day12").map {
-            it.toCharArray().toList().map { c -> Step(c) }
+        val distances = HashSet<Int>()
+
+        for (i in 0 until 41) {
+            for (j in 0 until 67) {
+                val map = readInput("day12").map {
+                    it.toCharArray().toList().map { c -> Step(c) }
+                }
+                if (map[i][j].c == 'a') {
+                    goToGoal(map, i, j)
+                    println(map[20][43])
+                    if (map[20][43].distance != -1) distances.add(map[20][43].distance)
+                }
+            }
         }
 
-        goToGoal(map, 20, 0)
-
-        println()
+        println(distances.min())
     }
 
     override fun part2() {
@@ -49,7 +58,7 @@ object Day12 : DayXX() {
             }
         }
 
-        println(map[row][col])
+        // println(map[row][col])
     }
 
     private fun shouldGo(step: Step, steps: Int): Boolean = (step.distance > steps || step.distance == -1)
