@@ -6,7 +6,7 @@ object Day01 : DayXX() {
 
     override fun part2() {
         val sortedSums = getSortedSums(readInput("day01"))
-        println(sortedSums.take(3).sum())
+        println(sortedSums.takeLast(3).sum())
     }
 
     private fun getSortedSums(input: List<String>): List<Int> {
@@ -22,7 +22,7 @@ object Day01 : DayXX() {
             }
         }
 
-        return sums.sorted().reversed()
+        return sums.sorted()
     }
 }
 
