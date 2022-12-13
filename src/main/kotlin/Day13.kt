@@ -13,12 +13,11 @@ object Day13 : DayXX() {
     override fun part1() {
         val sum = readInput("day13").filter { it != "" }
             .map { Json.decodeFromString<JsonArray>(it) }
-            .chunked(2).map {
-            compareTo(it[0], it[1])
-        }.mapIndexed { index, b ->
-            if (b!!) index + 1
-            else 0
-        }.sum()
+            .chunked(2).map { compareTo(it[0], it[1]) }
+            .mapIndexed { index, b ->
+                if (b!!) index + 1
+                else 0
+            }.sum()
 
         println(sum)
     }
