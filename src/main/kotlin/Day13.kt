@@ -1,24 +1,35 @@
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.int
 import kotlin.math.min
 
 object Day13 : DayXX() {
+
+    private const val DIVIDER_PACKET_1 = "[[2]]"
+    private const val DIVIDER_PACKET_2 = "[[6]]"
+
     override fun part1() {
-        val sum = readInput("day13").chunked(3)
-            .map { Pair(parseLine(it[0].iterator()), parseLine(it[1].iterator())) }
-            .map { compareTo(it.first, it.second) }
-            .mapIndexed { index, b ->
-                if (b!!) index + 1
-                else 0
-            }.sum()
+        val sum = readInput("day13").filter { it != "" }
+            .map { Json.decodeFromString<JsonArray>(it) }
+            .chunked(2).map {
+            compareTo(it[0], it[1])
+        }.mapIndexed { index, b ->
+            if (b!!) index + 1
+            else 0
+        }.sum()
 
         println(sum)
     }
 
     override fun part2() {
         val packets = readInput("day13").filter { it != "" }
-            .map { Pair(it, parseLine(it.iterator())) }.toMutableList()
+            .map { Pair(it, Json.decodeFromString<JsonArray>(it)) }
+            .toMutableList()
 
-        packets.add(Pair("[[2]]", parseLine("[[2]]".iterator())))
-        packets.add(Pair("[[6]]", parseLine("[[6]]".iterator())))
+        packets.add(Pair(DIVIDER_PACKET_1, Json.decodeFromString(DIVIDER_PACKET_1)))
+        packets.add(Pair(DIVIDER_PACKET_2, Json.decodeFromString(DIVIDER_PACKET_2)))
 
         packets.sortWith { pair1, pair2 ->
             when (compareTo(pair1.second, pair2.second)!!) {
@@ -29,51 +40,33 @@ object Day13 : DayXX() {
 
         val decoderKey = packets
             .mapIndexed { index, packet -> Triple(index + 1, packet.first, packet.second) }
-            .filter { packet -> packet.second == "[[2]]" || packet.second == "[[6]]" }
+            .filter { packet -> packet.second == DIVIDER_PACKET_1 || packet.second == DIVIDER_PACKET_2 }
             .fold(1) { acc, triple -> acc * triple.first }
 
         println(decoderKey)
     }
 
-    private fun parseLine(lineIterator: CharIterator): List<Any> {
-        val list = mutableListOf<Any>()
-
-        while (lineIterator.hasNext()) {
-            var num = ""
-            var char = lineIterator.next()
-
-            when (char) {
-                '[' -> list.add(parseLine(lineIterator))
-                ']' -> return list
-                in '0'..'9' -> {
-                    while (char.isDigit()) {
-                        num += char
-                        char = lineIterator.next()
-                    }
-                    list.add(num.toInt())
-                }
-            }
-        }
-
-        return list
-    }
-
-    private fun compareTo(left: List<Any>, right: List<Any>): Boolean? {
+    private fun compareTo(left: JsonArray, right: JsonArray): Boolean? {
         for (i in 0 until min(left.size, right.size)) {
             val leftItem = left[i]
             val rightItem = right[i]
 
-            if (leftItem is Int && rightItem is Int) {
-                if (leftItem == rightItem) continue
-                else return leftItem < rightItem
+            when {
+                leftItem is JsonPrimitive && rightItem is JsonPrimitive -> {
+                    if (leftItem == rightItem) continue
+
+                    return leftItem.int < rightItem.int
+                }
+                else -> {
+                    val leftList = if (leftItem is JsonArray) leftItem else JsonArray(listOf(leftItem))
+                    val rightList = if (rightItem is JsonArray) rightItem else JsonArray(listOf(rightItem))
+
+                    val compareToResult = compareTo(leftList, rightList)
+
+                    if (compareToResult != null) return compareToResult
+                }
             }
 
-            val leftList = if (leftItem is List<*>) leftItem else listOf(leftItem)
-            val rightList = if (rightItem is List<*>) rightItem else listOf(rightItem)
-
-            val compareToResult = compareTo(leftList as List<Any>, rightList as List<Any>)
-
-            if (compareToResult != null) return compareToResult
         }
 
         if (left.size == right.size) return null
