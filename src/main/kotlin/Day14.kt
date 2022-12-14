@@ -1,10 +1,13 @@
 data class Coordinate(val x: Int, val y: Int)
 object Day14 : DayXX() {
     override fun part1() {
+    }
+
+    override fun part2() {
         val rockScans = readInput("day14").map { line -> line.split(" -> ") }
             .map { pairs -> pairs.map { pair -> pair.split(",").map { s -> s.toInt() } } }
 
-        val rockCoordinates = mutableListOf<Coordinate>()
+        val rockCoordinates = mutableSetOf<Coordinate>()
 
         rockScans.forEach { rockScan ->
             for (i in rockScan.indices) {
@@ -40,21 +43,15 @@ object Day14 : DayXX() {
         for (i in lowestX..highestX) {
             rockCoordinates.add(Coordinate(i, highestY + 2))
         }
-        var count = 1
+        var count = 0
         do {
             val moveSand = moveSand(rockCoordinates, highestY + 2)
-            println(count)
             count++
         } while (moveSand)
-//        rockCoordinates.forEach(::println)
-
-
+        println(count)
     }
 
-    override fun part2() {
-    }
-
-    private fun moveSand(rockCoordinates: MutableList<Coordinate>, highestY: Int): Boolean {
+    private fun moveSand(rockCoordinates: MutableSet<Coordinate>, highestY: Int): Boolean {
         var sandCoordinate = Coordinate(500, 0)
 
         while (true) {
