@@ -35,9 +35,14 @@ object Day14 : DayXX() {
         }
 
         val highestY = rockCoordinates.map { it.y }.max()
+        val lowestX = rockCoordinates.map { it.x }.min()
+        val highestX = rockCoordinates.map { it.x }.max()
+        for (i in lowestX..highestX) {
+            rockCoordinates.add(Coordinate(i, highestY + 2))
+        }
         var count = 1
         do {
-            val moveSand = moveSand(rockCoordinates, highestY)
+            val moveSand = moveSand(rockCoordinates, highestY + 2)
             println(count)
             count++
         } while (moveSand)
@@ -57,19 +62,17 @@ object Day14 : DayXX() {
             val downLeftCoordinate = Coordinate(sandCoordinate.x - 1, sandCoordinate.y + 1)
             val downRightCoordinate = Coordinate(sandCoordinate.x + 1, sandCoordinate.y + 1)
 
-            if (!rockCoordinates.contains(downCoordinate)) {
+            if (!rockCoordinates.contains(downCoordinate) && downCoordinate.y < highestY) {
                 sandCoordinate = Coordinate(downCoordinate.x, downCoordinate.y)
-            } else if (!rockCoordinates.contains(downLeftCoordinate)) {
+            } else if (!rockCoordinates.contains(downLeftCoordinate) && downLeftCoordinate.y < highestY) {
                 sandCoordinate = downLeftCoordinate
-            } else if (!rockCoordinates.contains(downRightCoordinate)) {
+            } else if (!rockCoordinates.contains(downRightCoordinate) && downLeftCoordinate.y < highestY) {
                 sandCoordinate = downRightCoordinate
             } else {
                 rockCoordinates.add(sandCoordinate)
-                return sandCoordinate.y <= highestY
+                return sandCoordinate != Coordinate(500, 0)
             }
         }
-
-        return true
     }
 }
 
