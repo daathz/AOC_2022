@@ -4,11 +4,44 @@ object Day16 : DayXX() {
     override fun part1() {
         val valves = getValves(readInput("day16"))
         val distances = getDistances(valves)
-        val pressureSet = mutableSetOf<Int>()
 
-        dfs(0, 30, valves.first { it.name == "AA" }, setOf(), distances, valves, pressureSet)
+        val valvesWithPressure = listOf("XD", "FQ", "HH", "DW", "RP", "VM", "CS", "XC", "TE", "SU", "FL", "OL", "YP", "UK", "WV")
+        val myValvesList = mutableListOf<MutableList<String>>()
 
-        println(pressureSet.max())
+        for (i in 0 until (1 shl valvesWithPressure.size)) {
+            val newList = mutableListOf<String>()
+            for (j in valvesWithPressure.indices) {
+                if (i and (1 shl j) > 0) {
+                    newList.add(valvesWithPressure[j])
+                }
+            }
+            if (newList.size == 7) myValvesList.add(newList)
+        }
+
+        val elephantList = myValvesList.map { list ->
+            val newList = mutableListOf<String>()
+            valvesWithPressure.forEach { valve ->
+                if (!list.contains(valve)) newList.add(valve)
+            }
+
+            newList
+        }
+
+        var maxPressure = 0
+        for (i in myValvesList.indices) {
+            val myPressureSet = mutableSetOf<Int>()
+            val elephantsPressureSet = mutableSetOf<Int>()
+
+            dfs(0, 26, valves.first { it.name == "AA" }, myValvesList[i].toSet(), distances, valves, myPressureSet)
+            dfs(0, 26, valves.first { it.name == "AA" }, elephantList[i].toSet(), distances, valves, elephantsPressureSet)
+
+            maxPressure = maxOf(myPressureSet.max() + elephantsPressureSet.max(), maxPressure)
+        }
+        println(maxPressure)
+
+        // dfs(0, 30, valves.first { it.name == "AA" }, setOf(), distances, valves, pressureSet)
+
+        // println(pressureSet.max())
         // distances.forEach(::println)
     }
 
