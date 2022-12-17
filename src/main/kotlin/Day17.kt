@@ -86,9 +86,9 @@ object Day17 : DayXX() {
         var height = -1
         var rockCount = 0
 
-        while (rockCount < 2022) {
-            // println(rockCount)
-            // println(height)
+        while (rockCount < 1600) {
+            println("rockCount: $rockCount\theight: $height")
+            // if (height >= 1600) break
             val currentRock = Shape(height + 4, shapes[currentShapeNumber])
             while (true) {
                 val direction =
@@ -108,7 +108,17 @@ object Day17 : DayXX() {
                 }
             }
         }
-        println(fallenRockCoordinates.map { it.x }.max())
+        val finalHeight = fallenRockCoordinates.map { it.x }.max() + 1
+        println(finalHeight)
+
+        // to find pattern in visualization and calculate the final solution on paper with part 1 algorithm
+        /*for (x in finalHeight - 1 downTo 0) {
+            for (y in 0..6) {
+                if (fallenRockCoordinates.contains(Coordinate(x, y))) print(FOREGROUND_CHAR)
+                else print(BACKGROUND_CHAR)
+            }
+            println()
+        }*/
     }
 
     override fun part2() {
