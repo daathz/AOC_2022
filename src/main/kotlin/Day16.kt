@@ -16,7 +16,7 @@ object Day16 : DayXX() {
         val valves = getValves(readInput("day16"))
         val distances = getDistances(valves)
 
-        val (myValvesList, elephantList) = getDistinctValvesLists()
+        val (myValvesList, elephantList) = getDistinctValvesLists(distances["AA"]!!.keys.toList())
 
         var maxPressure = 0
         for (i in myValvesList.indices) {
@@ -101,8 +101,7 @@ object Day16 : DayXX() {
         }
     }
 
-    private fun getDistinctValvesLists(): Pair<MutableList<MutableSet<String>>, List<MutableSet<String>>> {
-        val valvesWithPressure = listOf("XD", "FQ", "HH", "DW", "RP", "VM", "CS", "XC", "TE", "SU", "FL", "OL", "YP", "UK", "WV")
+    private fun getDistinctValvesLists(valvesWithPressure: List<String>): Pair<MutableList<MutableSet<String>>, List<MutableSet<String>>> {
         val myValvesList = mutableListOf<MutableSet<String>>()
 
         for (i in 0 until (1 shl valvesWithPressure.size)) {
