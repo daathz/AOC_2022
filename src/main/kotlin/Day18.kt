@@ -1,57 +1,45 @@
 object Day18 : DayXX() {
 
-    data class Coordinate3D(val x: Int, val y: Int, val z: Int, var howManyN: Int = 0)
+    data class Coordinate3D(val x: Int, val y: Int, val z: Int)
+
+    private val neighbourDeltas = listOf(
+        Coordinate3D(0, 0, -1),
+        Coordinate3D(0, 0, 1),
+        Coordinate3D(0, -1, 0),
+        Coordinate3D(0, 1, 0),
+        Coordinate3D(-1, 0, 0),
+        Coordinate3D(1, 0, 0),
+    )
     override fun part1() {
-        val cubeValues = readInput("day18")
-            .map { line -> line.split(",")
-                .map { value -> value.toInt() }
-            }.map { Coordinate3D(it[0], it[1], it[2]) }
+        val cubes = getCubes(readInput("day18"))
 
-        val count = findSurfaceArea(cubeValues)
-
-        /*cubeValues.forEach { cube1 ->
-            cubeValues.forEach { cube2 ->
-                if (cube1 != cube2) {
-                    if (cube1.x == cube2.x && cube1.y == cube2.y && abs(cube1.z - cube2.z) == 1) {
-                        cube1.howManyN++
-                    } else if (cube1.x == cube2.x && cube1.z == cube2.z && abs(cube1.y - cube2.y) == 1) {
-                        cube1.howManyN++
-                    } else if (cube1.y == cube2.y && cube1.z == cube2.z && abs(cube1.x - cube2.x) == 1) {
-                        cube1.howManyN++
-                    }
-                }
+        val neighbourSizeList = cubes.map { cube ->
+            neighbourDeltas.count { delta ->
+                val deltaCube = Coordinate3D(cube.x + delta.x, cube.y + delta.y, cube.z + delta.z)
+                cubes.contains(deltaCube)
             }
-        }*/
+        }
 
-        //cubeValues.forEach(::println)
-
-        val sum = cubeValues.sumOf { maxOf(0, 6 - it.howManyN) }
-
-        println(count)
+        val surfaceArea = neighbourSizeList.sumOf { 6 - it }
+        println(surfaceArea)
     }
 
     override fun part2() {
+        val cubes = getCubes(readInput("day18"))
+
+        println(findSurfaceArea(cubes))
     }
 
-    private fun findSurfaceArea(cubeValues: List<Coordinate3D>): Int {
+    private fun findSurfaceArea(dropletCubes: List<Coordinate3D>): Int {
         val surfaceCubes = mutableSetOf<Coordinate3D>()
         var count = 0
 
-        val neighbourDeltas = listOf(
-            Triple(0, 0, -1),
-            Triple(0, 0, 1),
-            Triple(0, -1, 0),
-            Triple(0, 1, 0),
-            Triple(-1, 0, 0),
-            Triple(1, 0, 0),
-        )
-
-        val minX = cubeValues.map { it.x }.min() - 1
-        val minY = cubeValues.map { it.y }.min() - 1
-        val minZ = cubeValues.map { it.z }.min() - 1
-        val maxX = cubeValues.map { it.x }.max() + 1
-        val maxY = cubeValues.map { it.y }.max() + 1
-        val maxZ = cubeValues.map { it.z }.max() + 1
+        val minX = dropletCubes.map { it.x }.min() - 1
+        val minY = dropletCubes.map { it.y }.min() - 1
+        val minZ = dropletCubes.map { it.z }.min() - 1
+        val maxX = dropletCubes.map { it.x }.max() + 1
+        val maxY = dropletCubes.map { it.y }.max() + 1
+        val maxZ = dropletCubes.map { it.z }.max() + 1
 
 
         val startCube = Coordinate3D(minX, minY, minZ)
@@ -62,31 +50,30 @@ object Day18 : DayXX() {
             surfaceCubes.add(current)
 
             for (delta in neighbourDeltas) {
-                val newX = current.x + delta.first
-                val newY = current.y + delta.second
-                val newZ = current.z + delta.third
+                val newX = current.x + delta.x
+                val newY = current.y + delta.y
+                val newZ = current.z + delta.z
 
                 if (newX in minX..maxX && newY in minY..maxY && newZ in minZ..maxZ) {
-                    val newCoord = Coordinate3D(newX, newY, newZ)
+                    val deltaCube = Coordinate3D(newX, newY, newZ)
 
-                    if (!surfaceCubes.contains(newCoord) && !cubeValues.contains(newCoord)) {
-                        queue.add(newCoord)
-                        surfaceCubes.add(newCoord)
+                    if (dropletCubes.contains(deltaCube)) count++
+                    else if (!surfaceCubes.contains(deltaCube) && !dropletCubes.contains(deltaCube)) {
+                        queue.add(deltaCube)
+                        surfaceCubes.add(deltaCube)
                     }
                 }
             }
         }
 
-        for (surfaceCube in surfaceCubes) {
-            for (delta in neighbourDeltas) {
-                val currentCube =
-                    Coordinate3D(surfaceCube.x + delta.first, surfaceCube.y + delta.second, surfaceCube.z + delta.third)
-                if (cubeValues.contains(currentCube)) count++
-            }
-        }
-
         return count
     }
+
+    private fun getCubes(input: List<String>): List<Coordinate3D> =
+        input.map { line ->
+            line.split(",")
+                .map { value -> value.toInt() }
+        }.map { Coordinate3D(it[0], it[1], it[2]) }
 }
 
 fun main() {
