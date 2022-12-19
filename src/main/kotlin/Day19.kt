@@ -43,10 +43,7 @@ object Day19 : DayXX() {
             val (currentTime, currentRobots, currentCollected, currentMined) = deque.removeFirst()
 
             if (currentTime > depth) {
-                val sortedQueue = deque.sortedBy { (_, _, _, mined) ->
-                    10000 * mined[3] + 1000 * mined[2] + 10 * mined[1] + mined[0]
-                }.reversed()
-                deque = ArrayDeque(sortedQueue.take(30_000))
+                deque = pruneQueue(deque)
                 depth = currentTime
             }
 
@@ -56,7 +53,6 @@ object Day19 : DayXX() {
             }
 
             val newCollected = currentCollected + currentRobots
-
             val newMined = currentMined + currentRobots
 
             deque.add(State(currentTime + 1, currentRobots, newCollected, newMined))
@@ -65,7 +61,6 @@ object Day19 : DayXX() {
 
                 if (currentCollected > costOfRobot) {
                     val newRobots = currentRobots.addRobot(idx)
-
                     val newCollectedAgain = newCollected - costOfRobot
 
                     deque.add(State(currentTime + 1, newRobots, newCollectedAgain, newMined))
@@ -76,6 +71,11 @@ object Day19 : DayXX() {
         return maxVal
     }
 
+    private fun pruneQueue(queue: ArrayDeque<State>, n: Int = 30_000) = ArrayDeque(
+        queue.sortedBy { (_, _, _, mined) ->
+            10000 * mined[3] + 1000 * mined[2] + 10 * mined[1] + mined[0]
+        }.reversed().take(n)
+    )
 }
 
 fun main() {
@@ -87,37 +87,30 @@ class Resources(i: Int, j: Int, k: Int, l: Int) {
 
     operator fun get(idx: Int) = list[idx]
 
-    operator fun plus(other: Resources) = Resources(
-        this[0] + other[0],
-        this[1] + other[1],
-        this[2] + other[2],
-        this[3] + other[3]
-    )
+    operator fun plus(other: Resources) = list.mapIndexed { idx, value ->
+        value + other[idx]
+    }.toResource()
 
-    operator fun minus(other: Resources) = Resources(
-        this[0] - other[0],
-        this[1] - other[1],
-        this[2] - other[2],
-        this[3] - other[3]
-    )
+    operator fun minus(other: Resources) = list.mapIndexed { idx, value ->
+        value - other[idx]
+    }.toResource()
 
-    operator fun compareTo(other: Resources): Int {
-        val count = this.list.filterIndexed { idx, value -> value >= other.list[idx] }.count()
-
-        return when (count) {
+    operator fun compareTo(other: Resources) =
+        when (list.filterIndexed { idx, value -> value >= other.list[idx] }.count()) {
             in 4..Int.MAX_VALUE -> 1
             in 1..3 -> 0
             else -> -1
         }
-    }
 
     fun addRobot(idx: Int): Resources {
         val tempList = list.toMutableList()
         tempList[idx]++
 
-        return Resources(tempList[0], tempList[1], tempList[2], tempList[3])
+        return tempList.toResource()
     }
 }
+
+fun List<Int>.toResource() = Resources(this[0], this[1], this[2], this[3])
 
 typealias Cost = Resources
 
