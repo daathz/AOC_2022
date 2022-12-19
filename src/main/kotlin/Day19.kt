@@ -1,52 +1,50 @@
-import java.util.Locale
-
 object Day19 : DayXX() {
+
     override fun part1() {
-        val blueprints = readInput("day19").map { it.split(" ") }.map { line ->
-            listOf(
-                line[1].substring(0, line[1].length - 1).toInt(),
-                line[6].toInt(),
-                line[12].toInt(),
-                line[18].toInt(),
-                line[21].toInt(),
-                line[27].toInt(),
-                line[30].toInt()
-            )
+        val blueprints = getBlueprints(readInput("day19"))
+
+        val sum = blueprints.sumOf { blueprint ->
+            blueprint.id * bfs(blueprint.costs, 24)
         }
 
-        val quality = mutableListOf<Int>()
-        for (blueprint in blueprints) {
-            val costsPerRobot = listOf(
-                listOf(blueprint[1], 0, 0, 0),
-                listOf(blueprint[2], 0, 0, 0),
-                listOf(blueprint[3], blueprint[4], 0, 0),
-                listOf(blueprint[5], 0, blueprint[6], 0)
-            )
-
-            val robots = listOf(1, 0, 0, 0)
-
-            val maxVal = bfs(costsPerRobot, robots, 24)
-
-            //println(blueprint[0].toString() + "\t" + maxVal)
-            quality.add(blueprint[0] * maxVal)
-        }
-
-        println(quality.sum())
+        println(sum)
     }
 
-    private fun bfs(costsPerRobot: List<List<Int>>, robots: List<Int>, time: Int): Int {
+    override fun part2() {
+        val blueprints = getBlueprints(readInput("day19")).take(3)
+
+        val reduce = blueprints.map { blueprint ->
+            bfs(blueprint.costs, 32)
+        }.reduce { acc, i -> acc * i }
+
+        println(reduce)
+    }
+
+    private fun getBlueprints(input: List<String>) = input.map { it.split(" ") }.map { line ->
+        Blueprint(
+            line[1].substring(0, line[1].length - 1).toInt(),
+            listOf(
+                Cost(line[6].toInt(), 0, 0, 0),
+                Cost(line[12].toInt(), 0, 0, 0),
+                Cost(line[18].toInt(), line[21].toInt(), 0, 0),
+                Cost(line[27].toInt(), 0, line[30].toInt(), 0)
+            )
+        )
+    }
+
+    private fun bfs(costsPerRobot: List<Cost>, time: Int): Int {
         var maxVal = 0
 
         var deque = ArrayDeque<State>()
-        deque.add(State(0, robots, listOf(0, 0, 0, 0), listOf(0, 0, 0, 0)))
+        deque.add(State(0, Robots(1, 0, 0, 0), Resources(0, 0, 0, 0), Resources(0, 0, 0, 0)))
         var depth = 0
 
         while (deque.isNotEmpty()) {
             val (currentTime, currentRobots, currentCollected, currentMined) = deque.removeFirst()
 
             if (currentTime > depth) {
-                val sortedQueue = deque.sortedBy {
-                    10000 * it.mined[3] + 1000 * it.mined[2] + 10 * it.mined[1] + it.mined[0]
+                val sortedQueue = deque.sortedBy { (_, _, _, mined) ->
+                    10000 * mined[3] + 1000 * mined[2] + 10 * mined[1] + mined[0]
                 }.reversed()
                 deque = ArrayDeque(sortedQueue.take(30_000))
                 depth = currentTime
@@ -57,42 +55,20 @@ object Day19 : DayXX() {
                 continue
             }
 
-            val newCollected = listOf(
-                currentCollected[0] + currentRobots[0],
-                currentCollected[1] + currentRobots[1],
-                currentCollected[2] + currentRobots[2],
-                currentCollected[3] + currentRobots[3]
-            )
+            val newCollected = currentCollected + currentRobots
 
-            val newMined = listOf(
-                currentMined[0] + currentRobots[0],
-                currentMined[1] + currentRobots[1],
-                currentMined[2] + currentRobots[2],
-                currentMined[3] + currentRobots[3]
-            )
+            val newMined = currentMined + currentRobots
 
             deque.add(State(currentTime + 1, currentRobots, newCollected, newMined))
 
-            for (i in 0 until 4) {
-                val costOfRobot = costsPerRobot[i]
+            for ((idx, costOfRobot) in costsPerRobot.withIndex()) {
 
-                var canBuild = true
-                for (j in 0 until 4) {
-                    if (currentCollected[j] < costOfRobot[j]) canBuild = false
-                }
-                if (canBuild) {
-                    val newRobots = currentRobots.toMutableList()
-                    newRobots[i] += 1
+                if (currentCollected > costOfRobot) {
+                    val newRobots = currentRobots.addRobot(idx)
 
+                    val newCollectedAgain = newCollected - costOfRobot
 
-                    val newCollectedAgain = listOf(
-                        newCollected[0] - costOfRobot[0],
-                        newCollected[1] - costOfRobot[1],
-                        newCollected[2] - costOfRobot[2],
-                        newCollected[3] - costOfRobot[3]
-                    )
-
-                    deque.add(State(currentTime + 1, newRobots.toList(), newCollectedAgain, newMined))
+                    deque.add(State(currentTime + 1, newRobots, newCollectedAgain, newMined))
                 }
             }
         }
@@ -100,41 +76,53 @@ object Day19 : DayXX() {
         return maxVal
     }
 
-    override fun part2() {
-        val blueprints = readInput("day19").map { it.split(" ") }.map { line ->
-            listOf(
-                line[1].substring(0, line[1].length - 1).toInt(),
-                line[6].toInt(),
-                line[12].toInt(),
-                line[18].toInt(),
-                line[21].toInt(),
-                line[27].toInt(),
-                line[30].toInt()
-            )
-        }.take(3)
-
-        var multiplied = 1
-        for (blueprint in blueprints) {
-            val costsPerRobot = listOf(
-                listOf(blueprint[1], 0, 0, 0),
-                listOf(blueprint[2], 0, 0, 0),
-                listOf(blueprint[3], blueprint[4], 0, 0),
-                listOf(blueprint[5], 0, blueprint[6], 0)
-            )
-
-            val robots = listOf(1, 0, 0, 0)
-
-            val maxVal = bfs(costsPerRobot, robots, 32)
-            println(blueprint[0].toString() + "\t" + maxVal)
-            multiplied *= maxVal
-        }
-
-        println(multiplied)
-    }
 }
 
 fun main() {
     Day19.solve()
 }
 
-data class State(val time: Int, val robots: List<Int>, val collected: List<Int>, val mined: List<Int>)
+class Resources(i: Int, j: Int, k: Int, l: Int) {
+    val list: List<Int> = listOf(i, j, k, l)
+
+    operator fun get(idx: Int) = list[idx]
+
+    operator fun plus(other: Resources) = Resources(
+        this[0] + other[0],
+        this[1] + other[1],
+        this[2] + other[2],
+        this[3] + other[3]
+    )
+
+    operator fun minus(other: Resources) = Resources(
+        this[0] - other[0],
+        this[1] - other[1],
+        this[2] - other[2],
+        this[3] - other[3]
+    )
+
+    operator fun compareTo(other: Resources): Int {
+        val count = this.list.filterIndexed { idx, value -> value >= other.list[idx] }.count()
+
+        return when (count) {
+            in 4..Int.MAX_VALUE -> 1
+            in 1..3 -> 0
+            else -> -1
+        }
+    }
+
+    fun addRobot(idx: Int): Resources {
+        val tempList = list.toMutableList()
+        tempList[idx]++
+
+        return Resources(tempList[0], tempList[1], tempList[2], tempList[3])
+    }
+}
+
+typealias Cost = Resources
+
+typealias Robots = Resources
+
+data class Blueprint(val id: Int, val costs: List<Cost>)
+
+data class State(val time: Int, val robots: Robots, val collected: Resources, val mined: Resources)
