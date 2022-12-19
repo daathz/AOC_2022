@@ -2,7 +2,7 @@ import java.util.Locale
 
 object Day19 : DayXX() {
     override fun part1() {
-        val blueprints = readInput("day19test").map { it.split(" ") }.map { line ->
+        val blueprints = readInput("day19").map { it.split(" ") }.map { line ->
             listOf(
                 line[1].substring(0, line[1].length - 1).toInt(),
                 line[6].toInt(),
@@ -27,7 +27,7 @@ object Day19 : DayXX() {
 
             val maxVal = bfs(costsPerRobot, robots, 24)
 
-            println(blueprint[0].toString() + "\t" + maxVal)
+            //println(blueprint[0].toString() + "\t" + maxVal)
             quality.add(blueprint[0] * maxVal)
         }
 
@@ -101,6 +101,35 @@ object Day19 : DayXX() {
     }
 
     override fun part2() {
+        val blueprints = readInput("day19").map { it.split(" ") }.map { line ->
+            listOf(
+                line[1].substring(0, line[1].length - 1).toInt(),
+                line[6].toInt(),
+                line[12].toInt(),
+                line[18].toInt(),
+                line[21].toInt(),
+                line[27].toInt(),
+                line[30].toInt()
+            )
+        }.take(3)
+
+        var multiplied = 1
+        for (blueprint in blueprints) {
+            val costsPerRobot = listOf(
+                listOf(blueprint[1], 0, 0, 0),
+                listOf(blueprint[2], 0, 0, 0),
+                listOf(blueprint[3], blueprint[4], 0, 0),
+                listOf(blueprint[5], 0, blueprint[6], 0)
+            )
+
+            val robots = listOf(1, 0, 0, 0)
+
+            val maxVal = bfs(costsPerRobot, robots, 32)
+            println(blueprint[0].toString() + "\t" + maxVal)
+            multiplied *= maxVal
+        }
+
+        println(multiplied)
     }
 }
 
