@@ -1,36 +1,63 @@
 object Day20 : DayXX() {
-    const val DECRYPTION_KEY = 811589153
+    private const val DECRYPTION_KEY = 811589153
 
     override fun part1() {
-        val encrypted = readInput("day20").map { it.toLong() * DECRYPTION_KEY }
-            .mapIndexed { idx, value ->
-                Seq(idx, value)
-            }
+        val encrypted = getEncrypted(readInput("day20"))
 
-        var decrypted = encrypted.toMutableList()
+        val decrypted = encrypted.toMutableList()
 
-        repeat(10) {
-            encrypted.forEach { value ->
-                val idx = decrypted.indexOf(value)
+        mix(encrypted, decrypted)
+
+        // println(decrypted.map { it.value }.joinToString())
+
+        println(getCoordinates(decrypted))
+    }
+
+    override fun part2() {
+        val encrypted = getEncrypted(readInput("day20"), DECRYPTION_KEY)
+
+        val decrypted = encrypted.toMutableList()
+
+        mix(encrypted, decrypted, 10)
+
+        // println(decrypted.map { it.value }.joinToString())
+
+        println(getCoordinates(decrypted))
+    }
+
+    private fun getEncrypted(input: List<String>, encryptionKey: Int = 1): List<Seq> = input
+        .map { it.toLong() * encryptionKey }
+        .mapIndexed { idx, value ->
+            Seq(idx, value)
+        }
+
+    private fun mix(encrypted: List<Seq>, decrypted: MutableList<Seq>, n: Int = 1): List<Seq> {
+        repeat(n) {
+            encrypted.forEach { seq ->
+                val idx = decrypted.indexOf(seq)
                 decrypted.removeAt(idx)
-                decrypted.add((idx + value.value).mod(decrypted.size), value) // mod equals abs + %
+                decrypted.add((idx + seq.value).mod(decrypted.size), seq) // mod equals abs + %
 
                 // println(decrypted.map { it.value }.joinToString())
             }
         }
 
-        // println(decrypted.map { it.value }.joinToString())
-
-        val sum = decrypted.map { it.value }.let {
-            val idx = it.indexOf(0)
-            it[(1000 + idx) % decrypted.size] + it[(2000 + idx) % decrypted.size] + it[(3000 + idx) % decrypted.size]
-        }
-
-        println(sum)
+        return decrypted
     }
 
-    override fun part2() {
+    private fun getCoordinates(decrypted: List<Seq>): Long {
+        val decryptedValues = decrypted.map { it.value }
+
+        val indices = getIndices(decryptedValues.indexOf(0), decrypted.size)
+
+        return decryptedValues.filterIndexed { idx, _ -> indices.contains(idx) }.sum()
     }
+
+    private fun getIndices(indexOf0: Int, decryptedSize: Int) = listOf(
+        (indexOf0 + 1000) % decryptedSize,
+        (indexOf0 + 2000) % decryptedSize,
+        (indexOf0 + 3000) % decryptedSize
+    )
 }
 
 fun main() {
