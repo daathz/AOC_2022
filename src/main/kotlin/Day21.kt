@@ -18,6 +18,28 @@ object Day21 : DayXX() {
     }
 
     override fun part2() {
+        val jobs = readInput("day21").map { it.split(": ") }.map { line ->
+            val name = line[0]
+            val isNumeric = isNumeric(line[1])
+            val job = if (!isNumeric) line[1] else ""
+            val number = if (isNumeric) line[1].toLong() else 0L
+
+            Job(name, job, number)
+        }.toMutableList()
+
+        val humn = jobs.first { it.name == "humn" }
+        humn.number = 0L
+        humn.job = "x"
+
+        var i = 0
+        var tempJobs = jobs.toList()
+        while (i < 1_000) {
+            tempJobs = calc(tempJobs)
+            i++
+        }
+
+        println(tempJobs.first { it.name == "root" }.job)
+        // And then put it in a solver...
     }
 
     private fun calc(jobs: List<Job>): List<Job> {
@@ -50,6 +72,15 @@ object Day21 : DayXX() {
 
                             // println(newJob)
                         }
+                    }
+                }
+            } else if (currentJob.job.contains('x')) {
+                val name = currentJob.name
+                val job = currentJob.job
+
+                for (newJob in newJobs) {
+                    if (newJob.job != "" && newJob.job.contains(name)) {
+                        newJob.job = newJob.job.replace(name, "($job)")
                     }
                 }
             }
