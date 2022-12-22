@@ -7,27 +7,28 @@ object Day22 : DayXX() {
         var currentCoordinate = mapCoordinates.first { it.type != ' ' }
         var facing = ">"
 
-        for ((idx, instruction) in instructions.withIndex()) {
-            val (newCoordinate, newFacing) = doInstruction(mapCoordinates, instruction, currentCoordinate, facing)
+        for (instruction in instructions) {
+            val (newCoordinate, newFacing) = mapCoordinates.doInstruction(instruction, currentCoordinate, facing)
             currentCoordinate = newCoordinate
             facing = newFacing
         }
 
-        val facingNumber = when (facing) {
-            ">" -> 0
-            "v" -> 1
-            "<" -> 2
-            "^" -> 3
-            else -> -1
-        }
-
-        println(currentCoordinate.x)
-        println(currentCoordinate.y)
-        println(facing)
-        println(1000 * (currentCoordinate.x + 1) + 4 * (currentCoordinate.y + 1) + facingNumber)
+        println(getPassword(currentCoordinate, facing))
     }
 
     override fun part2() {
+        val (mapCoordinates, instructions) = parse(readInput("day22"))
+
+        var currentCoordinate = mapCoordinates.first { it.type != ' ' }
+        var facing = ">"
+
+        for (instruction in instructions) {
+            val (newCoordinate, newFacing) = mapCoordinates.doInstruction(instruction, currentCoordinate, facing, false)
+            currentCoordinate = newCoordinate
+            facing = newFacing
+        }
+
+        println(getPassword(currentCoordinate, facing))
     }
 
     private fun parse(input: List<String>): Pair<Set<MapCoordinate>, List<String>> {
@@ -59,34 +60,15 @@ object Day22 : DayXX() {
         return map.toSet() to instructions.toList()
     }
 
-    private fun doInstruction(
-        map: Set<MapCoordinate>,
+    private fun Set<MapCoordinate>.doInstruction(
         instruction: String,
         currentPosition: MapCoordinate,
-        facing: String
+        facing: String,
+        onPlane: Boolean = true
     ): Pair<MapCoordinate, String> {
+
         if (!instruction[0].isDigit()) {
-            var newFacing: String
-
-            if (instruction == "R") {
-                newFacing = when (facing) {
-                    ">" -> "v"
-                    "v" -> "<"
-                    "<" -> "^"
-                    "^" -> ">"
-                    else -> facing
-                }
-            } else {
-                newFacing = when (facing) {
-                    ">" -> "^"
-                    "v" -> ">"
-                    "<" -> "v"
-                    "^" -> "<"
-                    else -> facing
-                }
-            }
-
-            return currentPosition to newFacing
+            return doRotate(instruction, facing, currentPosition)
         }
 
         val stepCount = instruction.toInt()
@@ -97,29 +79,31 @@ object Day22 : DayXX() {
         for (i in 0 until stepCount) {
             when (newFacing) {
                 ">" -> {
-                    var newPos = map.find { it.x == newPosition.x && it.y == newPosition.y + 1 }
+                    var newPos = this.find { it.x == newPosition.x && it.y == newPosition.y + 1 }
                     if (newPos != null && newPos.type != ' ') {
                         if (newPos.type == '#') break
                         else if (newPos.type == '.') newPosition = newPos
                     } else {
-                        if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 5 right
-                            newPos = map.first { it.x == abs(newPosition.x - 49) + 100 && it.y == 99 }
-                            prevFacing = newFacing
-                            newFacing = "<"
-                        } else if (newPosition.x in 50..99 && newPosition.y in 50..99) { // 3 -> 2 down
-                            newPos = map.first { it.x == 49 && it.y == newPosition.x + 50 }
-                            prevFacing = newFacing
-                            newFacing = "^"
-                        } else if (newPosition.x in 100..149 && newPosition.y in 50..99) { // 5 -> 2 right
-                            newPos = map.first { it.y == 149 && it.x == abs(49 - (newPosition.x - 100))}
-                            prevFacing = newFacing
-                            newFacing = "<"
-                        } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 5 down
-                            newPos = map.first { it.x == 149 && it.y == newPosition.x - 100 }
-                            prevFacing = newFacing
-                            newFacing = "^"
+                        if (onPlane) {
+                            newPos = this.first { it.x == newPosition.x && it.type != ' ' }
                         } else {
-                            println("baj van <")
+                            if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 5 right
+                                newPos = this.first { it.x == abs(newPosition.x - 49) + 100 && it.y == 99 }
+                                prevFacing = newFacing
+                                newFacing = "<"
+                            } else if (newPosition.x in 50..99 && newPosition.y in 50..99) { // 3 -> 2 down
+                                newPos = this.first { it.x == 49 && it.y == newPosition.x + 50 }
+                                prevFacing = newFacing
+                                newFacing = "^"
+                            } else if (newPosition.x in 100..149 && newPosition.y in 50..99) { // 5 -> 2 right
+                                newPos = this.first { it.y == 149 && it.x == abs(49 - (newPosition.x - 100)) }
+                                prevFacing = newFacing
+                                newFacing = "<"
+                            } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 5 down
+                                newPos = this.first { it.x == 149 && it.y == newPosition.x - 100 }
+                                prevFacing = newFacing
+                                newFacing = "^"
+                            }
                         }
 
                         if (newPos?.type == '#') {
@@ -130,29 +114,31 @@ object Day22 : DayXX() {
                 }
 
                 "<" -> {
-                    var newPos = map.find { it.x == newPosition.x && it.y == newPosition.y - 1 }
+                    var newPos = this.find { it.x == newPosition.x && it.y == newPosition.y - 1 }
                     if (newPos != null && newPos.type != ' ') {
                         if (newPos.type == '#') break
                         else if (newPos.type == '.') newPosition = newPos
                     } else {
-                        if (newPosition.x < 50 && newPosition.y in 50..99) { // 1 -> 4 left
-                            newPos = map.first { it.y == 0 && it.x == abs(49 - newPosition.x) + 100 }
-                            prevFacing = newFacing
-                            newFacing = ">"
-                        } else if (newPosition.x in 50..99 && newPosition.y in 50..99) { // 3 -> 4 up
-                            newPos = map.first { it.y == newPosition.x - 50 && it.x == 100 }
-                            prevFacing = newFacing
-                            newFacing = "v"
-                        } else if (newPosition.x in 100..149 && newPosition.y < 50) { // 4 -> 1 left
-                            newPos = map.first { it.y == 50 && it.x == 49 - (newPosition.x  - 100) }
-                            prevFacing = newFacing
-                            newFacing = ">"
-                        } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 1 up
-                            newPos = map.first { it.x == 0 && newPosition.x - 100 == it.y }
-                            prevFacing = newFacing
-                            newFacing = "v"
+                        if (onPlane) {
+                            newPos = this.last { it.x == newPosition.x && it.type != ' ' }
                         } else {
-                            println("baj van <")
+                            if (newPosition.x < 50 && newPosition.y in 50..99) { // 1 -> 4 left
+                                newPos = this.first { it.y == 0 && it.x == abs(49 - newPosition.x) + 100 }
+                                prevFacing = newFacing
+                                newFacing = ">"
+                            } else if (newPosition.x in 50..99 && newPosition.y in 50..99) { // 3 -> 4 up
+                                newPos = this.first { it.y == newPosition.x - 50 && it.x == 100 }
+                                prevFacing = newFacing
+                                newFacing = "v"
+                            } else if (newPosition.x in 100..149 && newPosition.y < 50) { // 4 -> 1 left
+                                newPos = this.first { it.y == 50 && it.x == 49 - (newPosition.x - 100) }
+                                prevFacing = newFacing
+                                newFacing = ">"
+                            } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 1 up
+                                newPos = this.first { it.x == 0 && newPosition.x - 100 == it.y }
+                                prevFacing = newFacing
+                                newFacing = "v"
+                            }
                         }
 
                         if (newPos?.type == '#') {
@@ -163,25 +149,27 @@ object Day22 : DayXX() {
                 }
 
                 "^" -> {
-                    var newPos = map.find { it.x == newPosition.x - 1 && it.y == newPosition.y }
+                    var newPos = this.find { it.x == newPosition.x - 1 && it.y == newPosition.y }
                     if (newPos != null && newPos.type != ' ') {
                         if (newPos.type == '#') break
                         else if (newPos.type == '.') newPosition = newPos
                     } else {
-                        if (newPosition.x < 50 && newPosition.y in 50..99) { // 1 -> 6 left
-                            newPos = map.first { it.y == 0 && it.x == newPosition.y + 100 }
-                            prevFacing = newFacing
-                            newFacing = ">"
-                        } else if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 6 down
-                            newPos = map.first { it.x == 199 && it.y == newPosition.y - 100 }
-                            prevFacing = newFacing
-                            newFacing = "^"
-                        } else if (newPosition.x in 100..149 && newPosition.y < 50) { // 4 -> 3 left
-                            newPos = map.first { it.y == 50 && it.x == newPosition.y + 50 }
-                            prevFacing = newFacing
-                            newFacing = ">"
-                        }else {
-                            println("baj van ^")
+                        if (onPlane) {
+                            newPos = this.last { it.y == newPosition.y && it.type != ' ' }
+                        } else {
+                            if (newPosition.x < 50 && newPosition.y in 50..99) { // 1 -> 6 left
+                                newPos = this.first { it.y == 0 && it.x == newPosition.y + 100 }
+                                prevFacing = newFacing
+                                newFacing = ">"
+                            } else if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 6 down
+                                newPos = this.first { it.x == 199 && it.y == newPosition.y - 100 }
+                                prevFacing = newFacing
+                                newFacing = "^"
+                            } else if (newPosition.x in 100..149 && newPosition.y < 50) { // 4 -> 3 left
+                                newPos = this.first { it.y == 50 && it.x == newPosition.y + 50 }
+                                prevFacing = newFacing
+                                newFacing = ">"
+                            }
                         }
 
                         if (newPos?.type == '#') {
@@ -192,22 +180,27 @@ object Day22 : DayXX() {
                 }
 
                 "v" -> {
-                    var newPos = map.find { it.x == newPosition.x + 1 && it.y == newPosition.y }
+                    var newPos = this.find { it.x == newPosition.x + 1 && it.y == newPosition.y }
                     if (newPos != null && newPos.type != ' ') {
                         if (newPos.type == '#') break
                         else if (newPos.type == '.') newPosition = newPos
                     } else {
-                        if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 3 right
-                            newPos = map.first { it.y == 99 && it.x == newPosition.y - 50 }
-                            newFacing = "<"
-                        } else if (newPosition.x in 100..149 && newPosition.y in 50..99) { // 5 -> 6 right
-                            newPos = map.first { it.y == 49 && it.x == newPosition.y + 100 }
-                            newFacing = "<"
-                        } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 2 up
-                            newPos = map.first { it.x == 0 && it.y == newPosition.y + 100 }
-                            newFacing = "v"
-                        }else {
-                            println("baj van v")
+                        if (onPlane) {
+                            newPos = this.first { it.y == newPosition.y && it.type != ' ' }
+                        } else {
+                            if (newPosition.x < 50 && newPosition.y >= 100) { // 2 -> 3 right
+                                newPos = this.first { it.y == 99 && it.x == newPosition.y - 50 }
+                                prevFacing = newFacing
+                                newFacing = "<"
+                            } else if (newPosition.x in 100..149 && newPosition.y in 50..99) { // 5 -> 6 right
+                                newPos = this.first { it.y == 49 && it.x == newPosition.y + 100 }
+                                prevFacing = newFacing
+                                newFacing = "<"
+                            } else if (newPosition.x >= 150 && newPosition.y < 50) { // 6 -> 2 up
+                                newPos = this.first { it.x == 0 && it.y == newPosition.y + 100 }
+                                prevFacing = newFacing
+                                newFacing = "v"
+                            }
                         }
 
                         if (newPos?.type == '#') {
@@ -220,6 +213,43 @@ object Day22 : DayXX() {
         }
 
         return newPosition to newFacing
+    }
+
+    private fun doRotate(instruction: String, facing: String, currentPosition: MapCoordinate): Pair<MapCoordinate, String> {
+        val newFacing = when (instruction) {
+            "R" -> {
+                when (facing) {
+                    ">" -> "v"
+                    "v" -> "<"
+                    "<" -> "^"
+                    "^" -> ">"
+                    else -> facing
+                }
+            }
+            else -> {
+                when (facing) {
+                    ">" -> "^"
+                    "v" -> ">"
+                    "<" -> "v"
+                    "^" -> "<"
+                    else -> facing
+                }
+            }
+        }
+
+        return currentPosition to newFacing
+    }
+
+    private fun getPassword(currentCoordinate: MapCoordinate, facing: String): Int {
+        val facingNumber = when (facing) {
+            ">" -> 0
+            "v" -> 1
+            "<" -> 2
+            "^" -> 3
+            else -> -1
+        }
+
+        return 1000 * (currentCoordinate.x + 1) + 4 * (currentCoordinate.y + 1) + facingNumber
     }
 }
 
