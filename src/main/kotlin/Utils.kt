@@ -20,11 +20,17 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
 
 fun Char.toNumber() = toString().toInt()
 
+fun String.isNumeric(): Boolean {
+    val regex = "-?[0-9]+(\\.[0-9]+)?".toRegex()
+    return this.matches(regex)
+}
+
+infix fun Int.toY(other: Int): Coordinate = Coordinate(this, other)
+
 data class Coordinate(val x: Int, val y: Int) {
 
-    operator fun plus(other: Coordinate): Coordinate {
-        return this.x + other.x toY this.y + other.y
-    }
+    operator fun plus(other: Coordinate): Coordinate = this.x + other.x toY this.y + other.y
+
     fun checkSurrounding(elfCoordinates: Set<Coordinate>): Boolean {
         val surrounding = allSurrounding.map { this + it }.toSet()
 
@@ -73,8 +79,4 @@ data class Coordinate(val x: Int, val y: Int) {
 
         private val directions = listOf(norths, souths, wests, easts)
     }
-}
-
-infix fun Int.toY(other: Int): Coordinate {
-    return Coordinate(this, other)
 }

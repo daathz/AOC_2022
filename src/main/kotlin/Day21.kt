@@ -1,48 +1,48 @@
 object Day21 : DayXX() {
     override fun part1() {
-        var jobs = readInput("day21").map { it.split(": ") }.map { line ->
-            val name = line[0]
-            val isNumeric = isNumeric(line[1])
-            val job = if (!isNumeric) line[1] else ""
-            val number = if (isNumeric) line[1].toLong() else 0L
-
-            Job(name, job, number)
-        }
+        var jobs = getJobs(readInput("day21"))
 
         // jobs.forEach(::println)
+        val root = jobs.first { it.name == "root" }
 
-        while (jobs.first { it.name == "root" }.job != "") {
-            jobs = calc(jobs)
+        while (root.job != "") {
+            val (newJobs, _) = calc(jobs)
+            jobs = newJobs
         }
-        println(jobs.first { it.name == "root" }.number)
+        println(root.number)
     }
 
     override fun part2() {
-        val jobs = readInput("day21").map { it.split(": ") }.map { line ->
-            val name = line[0]
-            val isNumeric = isNumeric(line[1])
-            val job = if (!isNumeric) line[1] else ""
-            val number = if (isNumeric) line[1].toLong() else 0L
+        var low = 0L
+        var high = 1_000_000_000_000_000L
+        while (true) {
+            var tempJobs =  getJobs(readInput("day21"))
+            var isSolved = false
+            val humn = tempJobs.first { it.name == "humn" }
+            val mid = (low + high).floorDiv(2L)
+            humn.number = mid
 
-            Job(name, job, number)
-        }.toMutableList()
+            while (!isSolved) {
+                val (newJobs, solved) = calc(tempJobs, true)
+                tempJobs = newJobs
+                isSolved = solved
+            }
 
-        val humn = jobs.first { it.name == "humn" }
-        humn.number = 0L
-        humn.job = "x"
-
-        var i = 0
-        var tempJobs = jobs.toList()
-        while (i < 1_000) {
-            tempJobs = calc(tempJobs)
-            i++
+            val operators = tempJobs.first { it.name == "root" }.job.split(" ")
+            val left = operators[0].toLong()
+            val right = operators[2].toLong()
+            if (left == right) {
+                println(mid)
+                break
+            } else if (left > right) {
+                low = mid
+            } else {
+                high = mid
+            }
         }
-
-        println(tempJobs.first { it.name == "root" }.job)
-        // And then put it in a solver...
     }
 
-    private fun calc(jobs: List<Job>): List<Job> {
+    private fun calc(jobs: List<Job>, rootEquals: Boolean = false): Pair<MutableList<Job>, Boolean> {
         val newJobs = jobs.toMutableList()
 
         for (currentJob in jobs) {
@@ -55,9 +55,13 @@ object Day21 : DayXX() {
                         newJob.job = newJob.job.replace(name, number.toString())
 
                         val operator = newJob.job.split(" ")
-                        if (isNumeric(operator[0]) && isNumeric(operator[2])) {
+                        if (operator[0].isNumeric() && operator[2].isNumeric()) {
                             val left = operator[0].toLong()
                             val right = operator[2].toLong()
+
+                            if (rootEquals && newJob.name == "root") {
+                                return newJobs to true
+                            }
 
                             val newNumber = when (operator[1]) {
                                 "+" -> left + right
@@ -74,24 +78,19 @@ object Day21 : DayXX() {
                         }
                     }
                 }
-            } else if (currentJob.job.contains('x')) {
-                val name = currentJob.name
-                val job = currentJob.job
-
-                for (newJob in newJobs) {
-                    if (newJob.job != "" && newJob.job.contains(name)) {
-                        newJob.job = newJob.job.replace(name, "($job)")
-                    }
-                }
             }
         }
 
-        return newJobs
+        return newJobs to false
     }
 
-    private fun isNumeric(toCheck: String): Boolean {
-        val regex = "-?[0-9]+(\\.[0-9]+)?".toRegex()
-        return toCheck.matches(regex)
+    private fun getJobs(input: List<String>): List<Job> = input.map { it.split(": ") }.map { line ->
+        val name = line[0]
+        val isNumeric = line[1].isNumeric()
+        val job = if (!isNumeric) line[1] else ""
+        val number = if (isNumeric) line[1].toLong() else 0L
+
+        Job(name, job, number)
     }
 }
 
