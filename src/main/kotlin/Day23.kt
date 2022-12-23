@@ -8,8 +8,10 @@ object Day23 : DayXX() {
         }
         var direction = 0
 
-        repeat(10) {
+        var round = 1
+        while (true) {
             var moves = mutableSetOf<Pair<Coordinate, Coordinate>>()
+            var notMoved = 0
             elfCoordinates.forEach { elf ->
                 if (!elf.checkSurrounding(elfCoordinates)) {
                     when (direction) {
@@ -58,7 +60,12 @@ object Day23 : DayXX() {
                             }
                         }
                     }
-                }
+                } else notMoved++
+            }
+
+            if (notMoved == elfCoordinates.size) {
+                println(round)
+                break
             }
 
             val inspected = mutableListOf<Coordinate>()
@@ -77,8 +84,9 @@ object Day23 : DayXX() {
             }
 
             direction = (direction + 1) % 4
+            round += 1
 
-            val minX = elfCoordinates.map { it.x }.min()
+            /*val minX = elfCoordinates.map { it.x }.min()
             val maxX = elfCoordinates.map { it.x  }.max()
             val minY = elfCoordinates.map { it.y }.min()
             val maxY = elfCoordinates.map { it.y  }.max()
@@ -90,10 +98,10 @@ object Day23 : DayXX() {
                 }
                 println()
             }
-            println()
+            println()*/
         }
 
-        val minX = elfCoordinates.map { it.x }.min()
+        /*val minX = elfCoordinates.map { it.x }.min()
         val maxX = elfCoordinates.map { it.x  }.max()
         val minY = elfCoordinates.map { it.y }.min()
         val maxY = elfCoordinates.map { it.y  }.max()
@@ -107,7 +115,7 @@ object Day23 : DayXX() {
             }
         }
 
-        println(count)
+        println(count)*/
     }
 
     override fun part2() {
