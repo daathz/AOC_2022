@@ -1,4 +1,3 @@
-data class Coordinate(val x: Int, val y: Int)
 object Day14 : DayXX() {
     override fun part1() {
         val rockScans = getRockScans(readInput("day14"))
