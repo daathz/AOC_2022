@@ -11,6 +11,8 @@ object Day24 : DayXX() {
 
         initMap = initMap.filter { it.type != '.' }.toMutableSet()
 
+        var map = initMap.toSet()
+
         var time = 0
         // var deque = ArrayDeque<BlizzardState>()
         val maxX = initMap.maxOf { it.coordinate.x }
@@ -33,30 +35,6 @@ object Day24 : DayXX() {
             println()
         }*/
 
-
-        /*while (deque.isNotEmpty()) {
-            val (map, myCoordinate, minute) = deque.removeFirst()
-            println("$myCoordinate $minute")
-
-            if (myCoordinate == goal) {
-                time = minute
-                break
-            }
-
-            val newMap = moveBlizzards(map)
-
-            val directions = listOf(1 toY 0, 0 toY 1, -1 toY 0, 0 toY -1, 0 toY 0)
-
-            for (direction in directions) {
-                val nextPos = myCoordinate + direction
-                if (nextPos.x >= 0 && nextPos.y >= 0 && nextPos.x <= maxX && nextPos.y <= maxY) {
-                    if (newMap.find { it.coordinate == nextPos } == null) {
-                        deque.add(BlizzardState(newMap, nextPos, minute + 1))
-                    }
-                }
-            }
-        }*/
-
         val currentPositions = mutableSetOf(start)
         val directions = listOf(1 toY 0, 0 toY 1, -1 toY 0, 0 toY -1, 0 toY 0)
         while (true) {
@@ -64,13 +42,58 @@ object Day24 : DayXX() {
 
             time++
 
-            val newMap = moveBlizzards(initMap)
+            map = moveBlizzards(map)
             val nextPositions = mutableSetOf<Coordinate>()
             for (position in currentPositions) {
                 for (direction in directions) {
                     val newPos = position + direction
                     if (newPos.x >= 0 && newPos.y >= 0 && newPos.x <= maxX && newPos.y <= maxY) {
-                        if (newMap.find { it.coordinate == newPos } == null) {
+                        if (map.find { it.coordinate == newPos } == null) {
+                            nextPositions.add(newPos)
+                        }
+                    }
+                }
+            }
+            currentPositions.clear()
+            currentPositions.addAll(nextPositions)
+        }
+
+        currentPositions.clear()
+        currentPositions.add(goal)
+        while (true) {
+            if (currentPositions.contains(start)) break
+
+            time++
+
+            map = moveBlizzards(map)
+            val nextPositions = mutableSetOf<Coordinate>()
+            for (position in currentPositions) {
+                for (direction in directions) {
+                    val newPos = position + direction
+                    if (newPos.x >= 0 && newPos.y >= 0 && newPos.x <= maxX && newPos.y <= maxY) {
+                        if (map.find { it.coordinate == newPos } == null) {
+                            nextPositions.add(newPos)
+                        }
+                    }
+                }
+            }
+            currentPositions.clear()
+            currentPositions.addAll(nextPositions)
+        }
+        currentPositions.clear()
+        currentPositions.add(start)
+        while (true) {
+            if (currentPositions.contains(goal)) break
+
+            time++
+
+            map = moveBlizzards(map)
+            val nextPositions = mutableSetOf<Coordinate>()
+            for (position in currentPositions) {
+                for (direction in directions) {
+                    val newPos = position + direction
+                    if (newPos.x >= 0 && newPos.y >= 0 && newPos.x <= maxX && newPos.y <= maxY) {
+                        if (map.find { it.coordinate == newPos } == null) {
                             nextPositions.add(newPos)
                         }
                     }
